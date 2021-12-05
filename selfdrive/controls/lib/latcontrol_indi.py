@@ -12,6 +12,7 @@ from selfdrive.controls.lib.drive_helpers import get_steer_max
 DEFAULT_G = 0.25
 MAX_G = 1.0
 MIN_G = 0.1
+KP = 1.0
 
 class LatControlINDI():
   def __init__(self, CP):
@@ -91,15 +92,17 @@ class LatControlINDI():
       steer_filter_prev_x = self.steer_filter.x
       self.steer_filter.update(self.output_steer)
 
-      # Update effectiveness based on rate of change in control and angle
+      # Update effectiveness based on rate of change in control and rate
       if not CS.steeringPressed:
         delta_u = (self.steer_filter.x - steer_filter_prev_x) / DT_CTRL
-        self.G = self.G - self.mu * (self.G * delta_u - self.x[1]) * delta_u
+        self.G = self.G - self.mu * (self.G * delta_u - self.x[2]) * delta_u
         self.G = clip(self.G, MIN_G, MAX_G)
 
+      rate_sp = KP * (steers_des - self.x[0]) + rate_des
+
       # Compute desired change in actuator
-      angle_error = steers_des - self.x[0]
-      self.delta_u = angle_error / self.G
+      rate_error = rate_sp - self.x[1]
+      self.delta_u = rate_error / self.G
 
       # If steering pressed, only allow wind down
       if CS.steeringPressed and (self.delta_u * self.output_steer > 0):
@@ -122,10 +125,12 @@ class LatControlINDI():
       self.output_steer = clip(self.output_steer, -steers_max, steers_max)
 
       indi_log.active = True
-      indi_log.rateSetPoint = float(self.G)  # HACK
+      indi_log.rateSetPoint = float(rate_sp)
       indi_log.delayedOutput = float(self.steer_filter.x)
       indi_log.delta = float(self.delta_u)
       indi_log.output = float(self.output_steer)
+
+      indi_log.accelError = float(self.G)  # HACK
 
       check_saturation = (CS.vEgo > 10.) and not CS.steeringRateLimited and not CS.steeringPressed
       indi_log.saturated = self._check_saturation(self.output_steer, check_saturation, steers_max)
