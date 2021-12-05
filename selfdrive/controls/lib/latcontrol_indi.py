@@ -125,7 +125,7 @@ class LatControlINDI():
       self.output_steer = clip(self.output_steer, -steers_max, steers_max)
 
       indi_log.active = True
-      indi_log.rateSetPoint = float(rate_sp)
+      indi_log.rateSetPoint = float(math.degrees(rate_sp))
       indi_log.delayedOutput = float(self.steer_filter.x)
       indi_log.delta = float(self.delta_u)
       indi_log.output = float(self.output_steer)
