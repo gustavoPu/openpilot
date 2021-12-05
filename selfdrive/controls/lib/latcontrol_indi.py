@@ -9,9 +9,9 @@ from selfdrive.car import apply_toyota_steer_torque_limits
 from selfdrive.car.toyota.values import CarControllerParams
 from selfdrive.controls.lib.drive_helpers import get_steer_max
 
-DEFAULT_G = 0.25
-MAX_G = 1.0
-MIN_G = 0.1
+DEFAULT_G = 2.0
+MAX_G = 5.0
+MIN_G = 1.0
 KP = 1.0
 
 class LatControlINDI():
